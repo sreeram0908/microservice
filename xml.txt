@@ -1,0 +1,133 @@
+# XML LAB EXAM — LIBRARY MANAGEMENT SYSTEM
+
+## Question
+
+Create a well-formed XML file named `Library.xml` for a library management system with `<library>` as the root element and a child element `<book>`.
+
+Under `book` (title, published, stock, price):
+- `book` has its ID as `bookID`, and a category with three values: design, technology, business.
+- `price` has an ID `currency` with four values: INR, USD, GBP, YEN.
+
+Write an XQuery FLWOR expression to extract all books published after 2020. Return a newly constructed `book-summary` element for each match containing the book title as a text node and an `id` attribute holding the original `@id` value. Order the results alphabetically by title.
+
+## PART A: Create the XML File
+
+### Step 1: Create Library.xml
+
+Open CMD and execute:
+
+```cmd
+notepad Library.xml
+```
+
+Write the following XML code and save it:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<library>
+    <book id="B101" category="design">
+        <title>Web Design</title>
+        <published>2022</published>
+        <stock>10</stock>
+        <price currency="INR">500</price>
+    </book>
+
+    <book id="B102" category="technology">
+        <title>Artificial Intelligence</title>
+        <published>2023</published>
+        <stock>5</stock>
+        <price currency="USD">40</price>
+    </book>
+
+    <book id="B103" category="business">
+        <title>Business Management</title>
+        <published>2019</published>
+        <stock>8</stock>
+        <price currency="GBP">25</price>
+    </book>
+
+    <book id="B104" category="technology">
+        <title>Cloud Computing</title>
+        <published>2024</published>
+        <stock>12</stock>
+        <price currency="YEN">3000</price>
+    </book>
+
+    <book id="B105" category="design">
+        <title>Graphic Design</title>
+        <published>2021</published>
+        <stock>6</stock>
+        <price currency="INR">700</price>
+    </book>
+</library>
+```
+
+## PART B: Write the XQuery FLWOR Expression
+
+### Step 2: Create query.xq
+
+```cmd
+notepad query.xq
+```
+
+Write and save the following code:
+
+```xquery
+<results>
+{
+    for $b in doc("Library.xml")/library/book
+    where xs:integer($b/published) > 2020
+    order by $b/title
+    return
+        <book-summary id="{$b/@id}">
+            {$b/title/text()}
+        </book-summary>
+}
+</results>
+```
+
+## PART C: Execute the Query
+
+XQuery needs an XQuery processor, such as BaseX.
+
+1. Open BaseX.
+2. Open `Library.xml` in the database or XML editor.
+3. Open the XQuery editor.
+4. Paste the contents of `query.xq`.
+5. Execute the query.
+
+If BaseX is installed and available in your terminal, you can also run:
+
+```cmd
+basex query.xq
+```
+
+Ensure `Library.xml` is in the current working directory.
+
+## PART D: Expected Output
+
+```xml
+<results>
+  <book-summary id="B102">Artificial Intelligence</book-summary>
+  <book-summary id="B104">Cloud Computing</book-summary>
+  <book-summary id="B105">Graphic Design</book-summary>
+  <book-summary id="B101">Web Design</book-summary>
+</results>
+```
+
+The book published in 2019 is excluded because the query selects only books published after 2020.
+
+## PART E: Explanation of FLWOR
+
+- **FOR:** Iterates through each book in the XML file.
+- **LET:** Assigns a value to a variable; optional in this query.
+- **WHERE:** Selects books published after 2020.
+- **ORDER BY:** Sorts books alphabetically by title.
+- **RETURN:** Creates a new `book-summary` element.
+- **doc():** Loads the XML document.
+- **@id:** Retrieves the original book ID attribute.
+- **text():** Extracts the title as a text node.
+
+### Result
+
+Successfully created a well-formed `Library.xml` file and executed an XQuery FLWOR expression to extract books published after 2020, construct summary elements, and sort the results alphabetically by title.

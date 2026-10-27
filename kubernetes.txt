@@ -1,0 +1,150 @@
+# KUBERNETES LAB EXAM
+
+## Question: Deploy a Multi-Container Application Using Kubernetes
+
+You are given a Kubernetes cluster with kubectl access. Create a Deployment named `app-suite` that contains two containers:
+
+- Frontend running `nginx:latest`
+- Backend running `python:3.10` and executing a simple HTTP server on port 5000.
+
+### Requirements
+1. Deployment must run 3 replicas.
+2. Both containers should share a volume mounted at `/data`.
+3. Expose the Deployment using a ClusterIP Service named `app-suite-svc` that forwards traffic to the frontend container on port 80.
+
+### Procedure
+
+**Step 1: Check Kubernetes cluster**
+
+```cmd
+kubectl get nodes
+kubectl get pods
+```
+
+**Step 2: Create the YAML file**
+
+```cmd
+notepad app-suite.yaml
+```
+
+Write the following code and save it:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-suite
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app-suite
+  template:
+    metadata:
+      labels:
+        app: app-suite
+    spec:
+      volumes:
+        - name: shared-data
+          emptyDir: {}
+      containers:
+        - name: frontend
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: shared-data
+              mountPath: /data
+
+        - name: backend
+          image: python:3.10
+          command: ["python", "-m", "http.server", "5000"]
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: shared-data
+              mountPath: /data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-suite-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: app-suite
+  ports:
+    - port: 80
+      targetPort: 80
+```
+
+**Step 3: Deploy the application**
+
+```cmd
+kubectl apply -f app-suite.yaml
+```
+
+**Step 4: Verify the Deployment**
+
+```cmd
+kubectl get deployments
+kubectl get pods
+kubectl get services
+```
+
+Wait until all three Pods show `2/2` containers ready.
+
+**Step 5: Verify the shared volume**
+
+```cmd
+kubectl describe pod <pod-name>
+```
+
+Replace `<pod-name>` with a Pod name from `kubectl get pods`. Check that both containers have `/data` mounted.
+
+**Step 6: Verify the Service**
+
+```cmd
+kubectl describe service app-suite-svc
+kubectl get endpoints app-suite-svc
+```
+
+The Service should have endpoints corresponding to the frontend containers of the running Pods.
+
+**Step 7: Test the application**
+
+Run port forwarding:
+
+```cmd
+kubectl port-forward service/app-suite-svc 8080:80
+```
+
+Keep the terminal running and open a browser at:
+
+http://localhost:8080
+
+The Nginx welcome page should appear.
+
+**Step 8: Test the backend (optional)**
+
+Open another CMD window and run:
+
+```cmd
+kubectl port-forward pod/<pod-name> 5000:5000
+```
+
+Replace `<pod-name>` with a running Pod name, then visit:
+
+http://localhost:5000
+
+The Python HTTP server displays a directory listing.
+
+**Step 9: Clean up**
+
+```cmd
+kubectl delete -f app-suite.yaml
+```
+
+### Result
+
+Successfully created a Kubernetes Deployment named `app-suite` with three replicas, each containing an Nginx frontend and Python backend. Both containers share an `emptyDir` volume mounted at `/data`, and the `app-suite-svc` ClusterIP Service exposes the frontend on port 80.

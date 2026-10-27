@@ -1,0 +1,231 @@
+# DOCKER LAB EXAM — PART A AND PART B
+
+## PART A: Create a Docker Image Using Nginx
+
+### Question
+As a web developer, you need to quickly containerize a static website for local development and testing before deploying to production. Create a simple Dockerfile that builds a basic web server using Nginx to serve static HTML content.
+
+### Procedure
+
+**Step 1: Create a project folder**
+
+Open CMD and execute:
+
+```cmd
+mkdir DockerA
+cd DockerA
+```
+
+**Step 2: Create index.html**
+
+```cmd
+notepad index.html
+```
+
+Write and save the following code:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Website</title>
+</head>
+<body>
+    <h1>Hello from Docker Nginx!</h1>
+</body>
+</html>
+```
+
+**Step 3: Create Dockerfile**
+
+```cmd
+notepad Dockerfile
+```
+
+Write and save:
+
+```dockerfile
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/index.html
+EXPOSE 80
+```
+
+**Step 4: Build the Docker image**
+
+```cmd
+docker build -t mywebsite .
+```
+
+**Step 5: Run the container**
+
+```cmd
+docker run -d -p 8080:80 --name web1 mywebsite
+```
+
+**Step 6: Verify the output**
+
+Open the browser and visit:
+
+http://localhost:8080
+
+Expected output:
+
+Hello from Docker Nginx!
+
+**Step 7: Useful commands**
+
+```cmd
+docker images
+docker ps
+docker logs web1
+docker stop web1
+docker rm web1
+```
+
+---
+
+## PART B: Scale Services and Implement Load Balancing
+
+### Question
+Your application is experiencing high traffic and needs to handle more concurrent requests by running multiple instances of services. Scale services horizontally to handle increased load and implement load balancing.
+
+### Procedure
+
+**Step 1: Create a project folder**
+
+```cmd
+cd ..
+mkdir DockerB
+cd DockerB
+```
+
+**Step 2: Create index.html**
+
+```cmd
+notepad index.html
+```
+
+Write and save:
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Hello from Docker Service!</h1>
+</body>
+</html>
+```
+
+**Step 3: Create Dockerfile**
+
+```cmd
+notepad Dockerfile
+```
+
+Write and save:
+
+```dockerfile
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/index.html
+EXPOSE 80
+```
+
+**Step 4: Create compose.yaml**
+
+```cmd
+notepad compose.yaml
+```
+
+Write and save:
+
+```yaml
+services:
+  web:
+    build: .
+    expose:
+      - "80"
+
+  loadbalancer:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+```
+
+**Step 5: Create nginx.conf**
+
+```cmd
+notepad nginx.conf
+```
+
+Write and save:
+
+```nginx
+upstream backend {
+    server web:80;
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://backend;
+    }
+}
+```
+
+**Step 6: Build and run three web replicas**
+
+```cmd
+docker compose up -d --build --scale web=3
+```
+
+**Step 7: Verify containers**
+
+```cmd
+docker compose ps
+docker ps
+```
+
+Three web containers and one load-balancer container should be running.
+
+**Step 8: Test the website**
+
+Open the browser and visit:
+
+http://localhost:8081
+
+Expected output:
+
+Hello from Docker Service!
+
+The Nginx load balancer forwards incoming requests to the replicated web service.
+
+**Step 9: Stop the application**
+
+```cmd
+docker compose down
+```
+
+---
+
+## Important Docker Commands for Viva
+
+| Command | Purpose |
+|---|---|
+| `docker build -t mywebsite .` | Build an image |
+| `docker images` | List images |
+| `docker run -d -p 8080:80 mywebsite` | Run a container |
+| `docker ps` | List running containers |
+| `docker stop web1` | Stop a container |
+| `docker rm web1` | Remove a container |
+| `docker compose up -d --build --scale web=3` | Build and run three web replicas with a load balancer |
+| `docker compose down` | Stop and remove Compose containers |
+
+### Result
+Part A: Successfully created and ran a static website using Docker and Nginx.
+
+Part B: Successfully ran three web service replicas and configured Nginx as a load balancer using Docker Compose.
